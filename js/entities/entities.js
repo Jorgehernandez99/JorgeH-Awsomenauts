@@ -11,7 +11,12 @@ game.PlayerEntity = me.Entity.extend({
            }
         }]);
     
-        this.body.setVelocity(5, 0);
+        this.body.setVelocity(5, 20);
+    
+        this.renderable.addAnimation("idle", [78]);
+        this.renderable.addAnimation("walk", [117, 118, 119, 120, 121, 122, 123, 124, 125], 80);
+        
+        this.renderable.setCurrentAnimation("idle");
     
     },
     
@@ -21,11 +26,25 @@ game.PlayerEntity = me.Entity.extend({
             //setVelocity() and multiplying it by me.timer.tick.
             //me.timer.tick makes the movement look smooth
             this.body.vel.x += this.body.accel.x * me.timer.tick;
+            this.flipX(true);
         }else{
             this.body.vel.x = 0;
         }
         
+        if(this.body.vel.x !==0 ){
+        if(!this.renderable.setCurrentAnimation("walk")){
+            this.renderable.setCurrentAnimation("walk");
+        }
+    }
+        else{
+            this.renderable.setCurrentAnimation("idle");
+        }
+        
+        
+        
         this.body.update(delta);
+        
+        this._super(me.Entity, "update", [delta]);
         return true;
     }
 });
