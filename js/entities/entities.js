@@ -14,6 +14,9 @@ game.PlayerEntity = me.Entity.extend({
         this.body.setVelocity(5, 20);
         //keeps track of which direction your character is moving
         this.facing = "right";
+        this.now = new Date().getTime();
+        this.lastHit = this.now;
+        this.lastAttack = new Date().getTime();
         me.game.viewport.follow(this.pos, me.game.viewport.AXIS.BOTH);
 
         this.renderable.addAnimation("idle", [78]);
@@ -24,6 +27,7 @@ game.PlayerEntity = me.Entity.extend({
 
     },
     update: function(delta) {
+        this.now = new Date().getTime();
         if (me.input.isKeyPressed("right")) {
             //adds to the position of my x by the velocity defined above in
             //setVelocity() and multiplying it by me.timer.tick.
@@ -56,17 +60,15 @@ game.PlayerEntity = me.Entity.extend({
                 this.renderable.setAnimationFrame();
             }
         }
-        else if (this.body.vel.x !== 0) {
+        else if (this.body.vel.x !== 0 && !this.renderable.isCurrentAnimation("attack")) {
             if (!this.renderable.isCurrentAnimation("walk")) {
                 this.renderable.setCurrentAnimation("walk");
             }
         }
-        else {
+        else if(!this.renderable.isCurrentAnimation("attack")){
             this.renderable.setCurrentAnimation("idle");
         }
         
-        
-
         me.collision.check(this, true, this.collideHandler.bind(this), true);
         this.body.update(delta);
 
@@ -75,12 +77,10 @@ game.PlayerEntity = me.Entity.extend({
     },
     //Code that when the player collides with the enemy it cannot pass through
     collideHandler: function(response){
-        console.log(response.b.type);
         if(response.b.type==='EnemyBaseEntity'){
             var ydif = this.pos.y - response.b.pos.y;
             var xdif = this.pos.x - response.b.pos.x;
             
-            console.log("xdif" + xdif + " ydif " + ydif);
             
     //Code that doesn't let the player pass through from the left and right side when facing
     //the enemy base and also to not go through the base from the top
@@ -95,6 +95,11 @@ game.PlayerEntity = me.Entity.extend({
             }else if(xdif<70 && this.facing==='left' && (xdif>0)){
                 this.body.vel.x = 0;
                 this.pos.x = this.pos.x +1;
+            }            
+            // This code is if we are attacking and making contact with the base it loses health
+            if(this.renderable.isCurrentAnimation("attack") && this.now-this.lastHit >= 400){
+                this.lastHit = this.now;
+                response.b.loseHealth();
             }
         }
     }
@@ -176,6 +181,11 @@ game.EnemyBaseEntity = me.Entity.extend({
     },
     onCollision: function() {
 
+    },
+    
+    loseHealth: function() {
+        console.log(this.health);
+        this.health--;
     }
 
 });
