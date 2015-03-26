@@ -10,7 +10,8 @@ game.PlayerEntity = me.Entity.extend({
                     return(new me.Rect(0, 0, 64, 64)).toPolygon();
                 }
             }]);
-
+        this.type = "PlayerEntity";
+        this.health = 100;
         this.body.setVelocity(5, 20);
         //keeps track of which direction your character is moving
         this.facing = "right";
@@ -26,6 +27,7 @@ game.PlayerEntity = me.Entity.extend({
         this.renderable.setCurrentAnimation("idle");
 
     },
+    
     update: function(delta) {
         this.now = new Date().getTime();
         if (me.input.isKeyPressed("right")) {
@@ -75,6 +77,11 @@ game.PlayerEntity = me.Entity.extend({
         this._super(me.Entity, "update", [delta]);
         return true;
     },
+    
+    loseHealth: function(damage){
+      this.health = this.health - damage;  
+    },
+    
     //Code that when the player collides with the enemy it cannot pass through
     collideHandler: function(response){
         if(response.b.type==='EnemyBaseEntity'){
@@ -250,16 +257,32 @@ game.EnemyCreep = me.Entity.extend({
             console.log(this.now-this.lastHit);
             //checks that it has been at least 1 second since this creep hit a base
             if((this.now-this.lastHit >= 1000)){
-                
                 //updates the last hit timer
                 this.lastHit = this.now;
                 //makes the player base call its loseHealth function and passes it a
                 //damage of 1
                 response.b.loseHealth(1);
             }
+        }else if (response.b.type==='PlayerEntity'){
+            var xdif = this.pos.x - response.b.pos.x;
+            
+            this.attacking=true;
+            //this.lastAttacking=this.now;                     
+            if(xdif>0){
+            this.pos.x = this.pos.x +1;
+            //keeps the creep moving to the right to maintain its position
+            this.body.vel.x = 0;
+            }
+            //checks that it has been at least 1 second since this creep hit something
+            if((this.now-this.lastHit >= 1000) && xdif>0){
+                //updates the last hit timer
+                this.lastHit = this.now;
+                //makes the player base call its loseHealth function and passes it a
+                //damage of 1
+                response.b.loseHealth(1);
         }
     }
-    
+    } 
 });
 
 game.GameManager = Object.extend({
