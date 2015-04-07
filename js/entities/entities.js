@@ -41,7 +41,8 @@ game.PlayerEntity = me.Entity.extend({
     setFlags: function(){
       //keeps track of which direction your character is moving
         this.facing = "right";
-        this.dead = false;  
+        this.dead = false; 
+        this.attacking = false;
     },
     
     addAnimation: function(){
@@ -52,33 +53,11 @@ game.PlayerEntity = me.Entity.extend({
     
     update: function(delta) {
         this.now = new Date().getTime();
-
-        this.dead = checkIfDead();
-
+        this.dead = this.checkIfDead();
         this.checkKeyPressesAndMove();
-
-        
-
-        if (me.input.isKeyPressed("attack")) {
-            if (!this.renderable.isCurrentAnimation("attack")) {
-                //sets the current animation to attack and once that is over
-                //goes back to the idle animation
-                this.renderable.setCurrentAnimation("attack", "idle");
-                this.renderable.setAnimationFrame();
-            }
-        }
-        else if (this.body.vel.x !== 0 && !this.renderable.isCurrentAnimation("attack")) {
-            if (!this.renderable.isCurrentAnimation("walk")) {
-                this.renderable.setCurrentAnimation("walk");
-            }
-        }
-        else if (!this.renderable.isCurrentAnimation("attack")) {
-            this.renderable.setCurrentAnimation("idle");
-        }
-
+        this.setAnimation(); 
         me.collision.check(this, true, this.collideHandler.bind(this), true);
         this.body.update(delta);
-
         this._super(me.Entity, "update", [delta]);
         return true;
     },
@@ -102,6 +81,8 @@ game.PlayerEntity = me.Entity.extend({
         if (me.input.isKeyPressed("up")) {
             this.jump();
         }
+        
+        this.attacking = me.input.isKeyPressed("attack");
     },
     
     moveRight: function(){
@@ -124,18 +105,40 @@ game.PlayerEntity = me.Entity.extend({
                 this.body.vel.y -= this.body.accel.y * me.timer.tick;
     },
     
+    setAnimation: function(){
+        if (this.attacking) {
+            if (!this.renderable.isCurrentAnimation("attack")) {
+                //sets the current animation to attack and once that is over
+                //goes back to the idle animation
+                this.renderable.setCurrentAnimation("attack", "idle");
+                this.renderable.setAnimationFrame();
+            }
+        }
+        else if (this.body.vel.x !== 0 && !this.renderable.isCurrentAnimation("attack")) {
+            if (!this.renderable.isCurrentAnimation("walk")) {
+                this.renderable.setCurrentAnimation("walk");
+            }
+        }
+        else if (!this.renderable.isCurrentAnimation("attack")) {
+            this.renderable.setCurrentAnimation("idle");
+        }
+    },
+    
     loseHealth: function(damage) {
         this.health = this.health - damage;
     },
     //Code that when the player collides with the enemy it cannot pass through
     collideHandler: function(response) {
         if (response.b.type === 'EnemyBaseEntity') {
-            var ydif = this.pos.y - response.b.pos.y;
+            this.collideWithEnemyBase(response);
+        } else if (response.b.type === 'EnemyCreep') {
+            this.collideWithEnemyCreep(response);
+        }
+    },
+    
+    collideWithEnemyBase: function(response){
+        var ydif = this.pos.y - response.b.pos.y;
             var xdif = this.pos.x - response.b.pos.x;
-
-
-            //Code that doesn't let the player pass through from the left and right side when facing
-            //the enemy base and also to not go through the base from the top
 
             if (ydif < -40 && xdif < 70 && xdif > -35) {
                 this.body.falling = false;
@@ -143,44 +146,56 @@ game.PlayerEntity = me.Entity.extend({
             }
             else if (xdif > -35 && this.facing === 'right' && (xdif < 0) && ydif > -50) {
                 this.body.vel.x = 0;
-                //this.pos.x = this.pos.x - 1;
             } else if (xdif < 70 && this.facing === 'left' && (xdif > 0)) {
                 this.body.vel.x = 0;
-                //this.pos.x = this.pos.x + 1;
             }
-            // This code is if we are attacking and making contact with the base it loses health
             if (this.renderable.isCurrentAnimation("attack") && this.now - this.lastHit >= game.data.playerAttackTimer) {
                 this.lastHit = this.now;
                 response.b.loseHealth(game.data.playerAttack);
             }
-        } else if (response.b.type === 'EnemyCreep') {
-            var xdif = this.pos.x - response.b.pos.x;
+    },
+    
+    collideWithEnemeyCreep: function(response){
+        var xdif = this.pos.x - response.b.pos.x;
             var ydif = this.pos.y - response.b.pos.y;
             
-            if (xdif > 0) {
-                //this.pos.x = this.pos.x + 1;
+            this.stopMovement(xdif);
+            
+            if(this.checkAttack(xdif, ydif)){
+               this.hitCreep(response);
+            };
+    },
+    
+    stopMovement: function(xdif){
+        if (xdif > 0) {               
                 if (this.facing === "left") {
                     this.body.vel.x = 0;
                 }
             } else {
-                //this.pos.x = this.pos.x - 1;
                 if (this.facing === "right") {
                     this.body.vel.x = 0;
                 }
             }
-            if (this.renderable.isCurrentAnimation("attack") && this.now - this.lastHit >= game.data.playerAttackTimer
+    },
+    
+    checkAttack: function(xdif, ydif){
+         if (this.renderable.isCurrentAnimation("attack") && this.now - this.lastHit >= game.data.playerAttackTimer
                     && (Math.abs(ydif) <= 40) &&
                     (((xdif > 0) && this.facing === "left") || ((xdif < 0) && this.facing === "right"))
                     ) {
                 this.lastHit = this.now;
                 //If the creeps health is less than our attack, execute code in if statement
-                if(response.b.health <= game.data.playerAttack){
+                return true;
+            }
+                return false;
+    },
+    
+    hitCreep: function(response){
+         if(response.b.health <= game.data.playerAttack){
                     //Adds 1 gold for a creep kill
                     game.data.gold += 1;
-                }                
+                }   
+                
                 response.b.loseHealth(game.data.playerAttack);
-            }
-        }
-
     }
 });
