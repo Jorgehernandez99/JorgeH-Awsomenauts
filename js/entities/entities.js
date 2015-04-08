@@ -155,7 +155,7 @@ game.PlayerEntity = me.Entity.extend({
             }
     },
     
-    collideWithEnemeyCreep: function(response){
+    collideWithEnemyCreep: function(response){
         var xdif = this.pos.x - response.b.pos.x;
             var ydif = this.pos.y - response.b.pos.y;
             
