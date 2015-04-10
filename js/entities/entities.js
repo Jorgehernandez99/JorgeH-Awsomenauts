@@ -100,7 +100,7 @@ game.PlayerEntity = me.Entity.extend({
             this.flipX(false);
     },
     
-    jump: function(){
+    up: function(){
                 this.body.jumping = true;
                 this.body.vel.y -= this.body.accel.y * me.timer.tick;
     },
