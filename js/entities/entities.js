@@ -78,8 +78,8 @@ game.PlayerEntity = me.Entity.extend({
         else {
             this.body.vel.x = 0;
         }
-        if (me.input.isKeyPressed("up")) {
-            this.jump();
+        if (me.input.isKeyPressed("up")&& !this.body.jumping && !this.body.falling) {
+            this.up();
         }
         
         this.attacking = me.input.isKeyPressed("attack");
@@ -101,6 +101,7 @@ game.PlayerEntity = me.Entity.extend({
     },
     
     up: function(){
+        console.log("up");
                 this.body.jumping = true;
                 this.body.vel.y -= this.body.accel.y * me.timer.tick;
     },
