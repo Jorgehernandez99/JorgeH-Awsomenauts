@@ -10,7 +10,8 @@ game.SpendExp = me.ScreenObject.extend({
                 me.input.bindKey(me.input.KEY.F3, "F3");
                 me.input.bindKey(me.input.KEY.F4, "F4");
                 me.input.bindKey(me.input.KEY.F5, "F5");
-                var exp1cost = ((game.data.exp1 + 1) * 10);
+                var exp1cost = ((Number(game.data.exp1) + 1) * 10);
+                console.log(game.data.exp + " spend");
                 
                 me.game.world.addChild(new (me.Renderable.extend({
                     init: function(){
@@ -19,6 +20,7 @@ game.SpendExp = me.ScreenObject.extend({
                     },
                     
                     draw: function(renderer){
+                        console.log("draw");
                         this.font.draw(renderer.getContext(), "Press f1-f4, f5 to skip", this.pos.x, this.pos.y);
                         this.font.draw(renderer.getContext(), "CURRENT EXP: " + game.data.exp.toString(), this.pos.x + 100, this.pos.y + 50);
                         this.font.draw(renderer.getContext(), "F1: INCREASE GOLD PRODUCTION CURRENT LEVEL: " + game.data.exp1.toString() + " COST: " + exp1cost, this.pos.x, this.pos.y + 100);
@@ -27,9 +29,9 @@ game.SpendExp = me.ScreenObject.extend({
                         this.font.draw(renderer.getContext(), "F4: INCREASE HEALTH", this.pos.x, this.pos.y + 250);
                         
                     }
-                    
+                  
                    
-                           })));   
+                           })), 10);   
                            
                     this.handler = me.event.subscribe(me.event.KEYDOWN, function(action, keyCode, edge){
                         if(action === "F1"){

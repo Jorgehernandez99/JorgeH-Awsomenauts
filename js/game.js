@@ -55,6 +55,8 @@ var game = {
 			me.plugin.register.defer(this, debugPanel, "debug");
 		});
 	}
+        
+        console.log(game.data.exp + " game");
 
         me.state.SPENDEXP = 112;
         me.state.LOAD = 113;
@@ -91,6 +93,6 @@ var game = {
                 me.state.set(me.state.NEW, new game.NewProfile());
 
 		// Start the game.
-		me.state.change(me.state.PLAY);
+		me.state.change(me.state.MENU);
 	}
 };

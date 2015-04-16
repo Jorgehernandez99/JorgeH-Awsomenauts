@@ -1,4 +1,3 @@
-<!-- Code that connects the project on a local server called xxamp -->
 <?php
     require_once(__DIR__ . "/database.php");
     session_start();
@@ -12,6 +11,7 @@
     $database = "awsomenauts_db";
     /* the isset  is a word that asks if it is set or connected to the database*/
     if(!isset($_SESSION["connection"])) {
+        echo 'connection set';
         $connection = new Database($host, $username, $password, $database);
         $_SESSION["connection"] = $connection;
     }

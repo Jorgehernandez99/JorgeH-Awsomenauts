@@ -1,4 +1,3 @@
-<!-- Code that uses sessions to authenticate the user -->
 <?php
     require_once(__DIR__ . "/../model/config.php");
     
